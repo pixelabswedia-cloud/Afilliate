@@ -23,7 +23,15 @@ def generate_blog_post(topic):
 
 # Contoh penggunaan: Membuat konten tentang Ashwagandha
 topics = ["Ashwagandha for Stress", "Lion's Mane for Brain Fog", "Rhodiola Rosea Benefits"]
-
+# Daftar topik berdasarkan riset keyword global
+topics = [
+    "Benefits of Lion's Mane for Cognitive Function",
+    "How Ashwagandha Helps Lower Cortisol Levels",
+    "Berberine: The Natural Solution for Metabolic Health",
+    "Rhodiola Rosea for Professional Burnout Recovery",
+    "Best Herbal Teas for Deep REM Sleep",
+    "The Science Behind Holy Basil and Stress Management"
+]
 for topic in topics:
     content = generate_blog_post(topic)
     filename = f"blog-{topic.lower().replace(' ', '-')}.html"
