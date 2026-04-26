@@ -11,37 +11,35 @@ if not api_key:
 client = Groq(api_key=api_key)
 
 def generate_content():
-    prompt = "Buatlah artikel blog singkat tentang tren harga pangan di Indonesia menggunakan format HTML sederhana dengan Tailwind CSS classes."
+    # Prompt lebih ketat agar tidak ada teks basa-basi
+    prompt = """
+    Buatlah artikel blog tentang harga pangan Indonesia. 
+    WAJIB memberikan HANYA kode HTML murni. 
+    Sertakan link CDN Tailwind CSS di dalam <head>.
+    Struktur harus lengkap: <!DOCTYPE html>, <html>, <head>, <body>.
+    Gunakan container agar konten berada di tengah dan terlihat profesional di HP.
+    JANGAN berikan penjelasan teks apa pun di luar tag HTML.
+    """
     
     try:
         completion = client.chat.completions.create(
             messages=[
-                {
-                    "role": "system", 
-                    "content": "Kamu adalah asisten penulis blog profesional yang ahli dalam SEO dan HTML/Tailwind CSS."
-                },
-                {
-                    "role": "user", 
-                    "content": prompt
-                }
+                {"role": "system", "content": "You are a professional web developer. Always output pure HTML code with Tailwind CDN. No conversational text."},
+                {"role": "user", "content": prompt}
             ],
-            # Menggunakan model Llama 3.1 8B yang sangat cepat dan gratis
             model="llama-3.1-8b-instant",
             temperature=0.7,
-            max_tokens=2048,
         )
         
-        content = completion.choices[0].message.content
+        content = completion.choices[0].message.content.strip()
         
-        # Simpan hasil ke file index.html atau sesuai folder blog kamu
+        # Membersihkan jika AI masih nakal memberikan markdown ```html
+        if "```html" in content:
+            content = content.split("```html")[1].split("```")[0].strip()
+        elif "```" in content:
+            content = content.split("```")[1].split("```")[0].strip()
+
         with open("index.html", "w", encoding="utf-8") as f:
             f.write(content)
             
-        print("Konten blog berhasil dibuat!")
-        
-    except Exception as e:
-        print(f"Terjadi kesalahan: {e}")
-        exit(1)
-
-if __name__ == "__main__":
-    generate_content()
+        print("Konten blog berhasil diperbarui dengan struktur HTML lengkap!")
