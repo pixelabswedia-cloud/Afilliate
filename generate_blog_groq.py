@@ -26,16 +26,19 @@ def generate_web_ultra():
         </style>
     </head>
     <body class="bg-[#0b0e11] text-white font-sans">
+        
         <div id="coin-modal" class="fixed inset-0 z-[100] hidden bg-[#0b0e11] overflow-y-auto">
             <div class="max-w-5xl mx-auto p-4 md:p-10">
                 <nav class="flex justify-between items-center mb-8">
                     <button onclick="closeModal()" class="text-gray-400 hover:text-white flex items-center gap-2">
                         <i class="fas fa-chevron-left"></i> Markets
                     </button>
+                    <div id="modal-header-price" class="text-right"></div>
                 </nav>
                 <div id="modal-content"></div>
             </div>
         </div>
+
         <nav class="sticky top-0 z-50 bg-[#0b0e11]/90 backdrop-blur-md border-b border-gray-800 p-4">
             <div class="max-w-7xl mx-auto flex justify-between items-center">
                 <div class="flex items-center gap-2">
@@ -47,26 +50,30 @@ def generate_web_ultra():
                 </div>
             </div>
         </nav>
+
         <main class="max-w-7xl mx-auto p-4 md:p-6">
             <section class="mb-8">
                 <h1 class="text-2xl font-bold">Harga Aset Kripto</h1>
-                <p class="text-gray-500 text-xs mt-1 italic">Update Otomatis setiap 60 detik</p>
+                <p class="text-gray-500 text-xs mt-1 italic">Data diperbarui otomatis setiap 60 detik</p>
             </section>
+            
             <div class="overflow-x-auto bg-[#171924] rounded-xl border border-gray-800 mb-12 text-sm">
                 <table class="w-full text-left">
                     <thead class="text-gray-500 text-[10px] uppercase border-b border-gray-800 tracking-widest font-bold">
                         <tr>
-                            <th class="p-4"># Name</th>
-                            <th class="p-4 text-right">Price (IDR)</th>
-                            <th class="p-4 text-right">24h %</th>
-                            <th class="p-4 text-center">Trend 7D</th>
+                            <th class="p-4"># Nama Aset</th>
+                            <th class="p-4 text-right">Harga (IDR)</th>
+                            <th class="p-4 text-right">24j %</th>
+                            <th class="p-4 text-center">Trend 7 Hari</th>
                         </tr>
                     </thead>
-                    <tbody id="crypto-table-body"></tbody>
+                    <tbody id="crypto-table-body">
+                        </tbody>
                 </table>
             </div>
+
             <h2 class="text-lg font-bold mb-6 flex items-center gap-2">
-                <span class="w-2 h-2 bg-red-600 rounded-full animate-pulse"></span> News Flash AI
+                <span class="w-2 h-2 bg-red-600 rounded-full animate-pulse"></span> Berita Viral AI
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
                 {{{{AI_NEWS}}}}
@@ -78,8 +85,10 @@ def generate_web_ultra():
         <footer class="p-10 border-t border-gray-800 text-center text-gray-600 text-[10px]">
             <p>&copy; {datetime.datetime.now().year} SAKA DIGITAL SYSTEMS | DATA BY COINGECKO</p>
         </footer>
+
         <script>
             let cryptoData = [];
+
             async function fetchCrypto() {{
                 try {{
                     const res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=idr&order=market_cap_desc&per_page=10&page=1&sparkline=true&price_change_percentage=24h');
@@ -87,6 +96,7 @@ def generate_web_ultra():
                     renderTable();
                 }} catch(e) {{ console.log(e); }}
             }}
+
             function renderTable() {{
                 const tbody = document.getElementById('crypto-table-body');
                 tbody.innerHTML = '';
@@ -99,9 +109,9 @@ def generate_web_ultra():
                                 <img src="${{coin.image}}" class="w-5 h-5 rounded-full">
                                 <span class="font-bold tracking-tight text-white">${{coin.name}}</span>
                             </td>
-                            <td class="p-4 text-right font-mono text-xs tracking-tighter">Rp ${{coin.current_price.toLocaleString('id-ID')}}</td>
+                            <td class="p-4 text-right font-mono text-xs tracking-tighter text-white">Rp ${{coin.current_price.toLocaleString('id-ID')}}</td>
                             <td class="p-4 text-right ${{isUp ? 'text-green-500' : 'text-red-500'}} text-[11px] font-bold">
-                                ${{isUp ? '+' : ''}}${{coin.price_change_percentage_24h.toFixed(2)}}%
+                                ${{isUp ? '▲' : '▼'}} ${{Math.abs(coin.price_change_percentage_24h).toFixed(2)}}%
                             </td>
                             <td class="p-4"><canvas id="c-${{coin.id}}" width="100" height="35"></canvas></td>
                         </tr>
@@ -109,6 +119,7 @@ def generate_web_ultra():
                     renderSparkline(coin);
                 }});
             }}
+
             function renderSparkline(coin) {{
                 setTimeout(() => {{
                     const el = document.getElementById(`c-${{coin.id}}`);
@@ -131,10 +142,12 @@ def generate_web_ultra():
                     }});
                 }}, 150);
             }}
+
             async function openDetail(id) {{
                 const coin = cryptoData.find(c => c.id === id);
                 document.getElementById('coin-modal').classList.remove('hidden');
                 document.body.style.overflow = 'hidden';
+                
                 const content = document.getElementById('modal-content');
                 content.innerHTML = `
                     <div class="mb-10">
@@ -143,49 +156,82 @@ def generate_web_ultra():
                             <h2 class="text-3xl font-bold text-white">${{coin.name}} <span class="text-gray-500 text-lg uppercase">${{coin.symbol}}</span></h2>
                         </div>
                         <div class="flex items-center gap-4">
-                            <span class="text-4xl font-bold font-mono">Rp ${{coin.current_price.toLocaleString('id-ID')}}</span>
+                            <span class="text-4xl font-bold font-mono text-white">Rp ${{coin.current_price.toLocaleString('id-ID')}}</span>
                             <span class="bg-${{coin.price_change_percentage_24h > 0 ? 'green' : 'red'}}-600 px-2 py-1 rounded text-xs font-bold uppercase text-white">
                                 ${{coin.price_change_percentage_24h.toFixed(2)}}%
                             </span>
                         </div>
                     </div>
-                    <div class="bg-[#171924] rounded-2xl border border-gray-800 overflow-hidden mb-10">
-                        <div class="p-4 border-b border-gray-800 bg-gray-800/20 font-bold text-sm text-white">Market Listing</div>
+
+                    <div class="bg-[#171924] rounded-2xl border border-gray-800 overflow-hidden mb-10 shadow-2xl">
+                        <div class="p-4 border-b border-gray-800 bg-gray-800/20 font-bold text-sm text-white flex justify-between items-center">
+                            <span>${{coin.name}} Markets</span>
+                            <span class="text-[10px] text-gray-500 uppercase tracking-widest font-normal">Top Exchanges</span>
+                        </div>
                         <div class="overflow-x-auto text-[11px]">
-                            <table class="w-full">
-                                <thead class="text-gray-500 uppercase border-b border-gray-800">
-                                    <tr><th class="p-3 text-left">Exchange</th><th class="p-3">Pairs</th><th class="p-3 text-right">Price</th></tr>
+                            <table class="w-full text-left">
+                                <thead class="text-gray-500 uppercase border-b border-gray-800 bg-gray-900/10">
+                                    <tr>
+                                        <th class="p-4 font-bold"># Exchange</th>
+                                        <th class="p-4 text-center font-bold">Pairs</th>
+                                        <th class="p-4 text-right font-bold">Price (IDR)</th>
+                                    </tr>
                                 </thead>
-                                <tbody id="market-list-body"><tr><td colspan="3" class="p-10 text-center">Loading Market...</td></tr></tbody>
+                                <tbody id="market-list-body">
+                                    <tr><td colspan="3" class="p-10 text-center text-gray-600 animate-pulse italic">Mengambil data pasar...</td></tr>
+                                </tbody>
                             </table>
                         </div>
+                    </div>
+
+                    <div class="bg-yellow-600/10 p-6 rounded-2xl border border-yellow-600/20">
+                        <h4 class="text-yellow-500 font-bold mb-2 uppercase text-[10px] tracking-widest">Saka AI Market Insight</h4>
+                        <p class="text-xs text-gray-400 leading-relaxed italic">
+                            Sistem memantau volume perdagangan ${{coin.name}} sebesar Rp ${{coin.total_volume.toLocaleString('id-ID')}} dalam 24 jam terakhir. 
+                            Ini adalah bursa paling aktif untuk melakukan trading pasangan ${{coin.symbol.toUpperCase()}} saat ini.
+                        </p>
                     </div>
                 `;
                 fetchTickers(id);
             }}
+
             async function fetchTickers(coinId) {{
                 try {{
                     const res = await fetch(`https://api.coingecko.com/api/v3/coins/${{coinId}}/tickers?include_exchange_logo=true&depth=false`);
                     const data = await res.json();
                     const tbody = document.getElementById('market-list-body');
                     tbody.innerHTML = '';
-                    data.tickers.slice(0, 8).forEach((t) => {{
+
+                    // Ambil 8 bursa teratas
+                    data.tickers.slice(0, 8).forEach((t, i) => {{
                         tbody.innerHTML += `
-                            <tr class="border-b border-gray-800/50 market-table-row">
-                                <td class="p-3 flex items-center gap-3 font-bold text-white">
-                                    <img src="${{t.market.logo}}" class="w-4 h-4 rounded-full bg-white p-0.5"> ${{t.market.name}}
+                            <tr class="border-b border-gray-800/50 market-table-row transition hover:bg-white/5">
+                                <td class="p-4 flex items-center gap-3 font-bold text-white">
+                                    <span class="text-gray-600 w-3">${{i+1}}</span>
+                                    <img src="${{t.market.logo}}" class="w-4 h-4 rounded-full bg-white p-0.5">
+                                    ${{t.market.name}}
                                 </td>
-                                <td class="p-3 text-blue-400 text-center uppercase tracking-tighter">${{t.base}}/${{t.target}}</td>
-                                <td class="p-3 text-right font-mono tracking-tighter text-white">Rp ${{t.converted_last.idr.toLocaleString('id-ID')}}</td>
+                                <td class="p-4 text-blue-400 text-center uppercase tracking-tighter font-bold">
+                                    ${{t.base}}/${{t.target}} <i class="fas fa-external-link-alt text-[8px] ml-1 opacity-50"></i>
+                                </td>
+                                <td class="p-4 text-right font-mono tracking-tighter text-white font-bold">
+                                    Rp ${{t.converted_last.idr.toLocaleString('id-ID')}}
+                                </td>
                             </tr>
                         `;
                     }});
-                }} catch(e) {{ console.log(e); }}
+                }} catch(e) {{ 
+                    console.log(e);
+                    document.getElementById('market-list-body').innerHTML = '<tr><td colspan="3" class="p-5 text-center text-red-500 text-xs">Gagal memuat data bursa.</td></tr>';
+                }}
             }}
+
             function closeModal() {{
                 document.getElementById('coin-modal').classList.add('hidden');
                 document.body.style.overflow = 'auto';
             }}
+
+            // Start Engine
             fetchCrypto();
             setInterval(fetchCrypto, 60000);
         </script>
@@ -197,21 +243,21 @@ def generate_web_ultra():
 
     try:
         completion = client.chat.completions.create(
-            messages=[{"role": "system", "content": "HTML Output only."}, {"role": "user", "content": news_prompt}],
+            messages=[{"role": "system", "content": "Output clean HTML divs only."}, {"role": "user", "content": news_prompt}],
             model="llama-3.1-8b-instant",
         )
         ai_news = completion.choices[0].message.content.strip()
         
-        # Membersihkan markdown jika AI tetap memberikannya
+        # Bersihkan dari tag markdown jika ada
         if "```" in ai_news:
             ai_news = ai_news.split("```")[1].replace("html", "").strip()
 
         with open("index.html", "w", encoding="utf-8") as f:
             f.write(header_html.replace("{{{{AI_NEWS}}}}", ai_news) + footer_html)
-        print("Success: SakaMarketCap Ultra Build Completed!")
+        print("Success: SakaMarketCap Pro with Market Listing updated!")
         
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Critical Error: {e}")
 
 if __name__ == "__main__":
     generate_web_ultra()
