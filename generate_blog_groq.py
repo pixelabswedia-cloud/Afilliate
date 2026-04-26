@@ -5,83 +5,138 @@ from groq import Groq
 api_key = os.environ.get("GROQ_API_KEY")
 client = Groq(api_key=api_key)
 
-def generate_blog():
-    # Bagian Identitas Statis (Tidak akan berubah)
+def generate_web():
+    # Bagian Header & Identitas Saka
     header_html = """
     <!DOCTYPE html>
     <html lang="id">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Saka Crypto Hub & Monitoring</title>
+        <title>Saka Crypto Monitor - Real-Time Prices</title>
         <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <style>
+            .crypto-card:hover { transform: translateY(-5px); transition: 0.3s; }
+            .shimmer { background: linear-gradient(90deg, #1f2937 25%, #374151 50%, #1f2937 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+            @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        </style>
     </head>
-    <body class="bg-gray-900 text-white font-sans">
-        <nav class="p-5 border-b border-gray-800 flex justify-between items-center bg-gray-900 sticky top-0 z-50">
-            <h1 class="text-2xl font-bold text-yellow-500">Saka<span class="text-white">Crypto</span></h1>
-            <div class="space-x-4 text-sm">
-                <a href="#proyek" class="hover:text-yellow-500">Proyek</a>
-                <a href="https://sakawebsite.github.io/" class="hover:text-yellow-500 font-bold">Portfolio</a>
+    <body class="bg-[#0b0e11] text-white font-sans">
+        <nav class="sticky top-0 z-50 bg-[#0b0e11] border-b border-gray-800 p-4">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="bg-yellow-500 p-2 rounded-lg text-black font-bold">S</div>
+                    <span class="text-xl font-bold tracking-tight">Saka<span class="text-yellow-500">MarketCap</span></span>
+                </div>
+                <div class="hidden md:flex gap-6 text-sm font-medium">
+                    <a href="https://sakawebsite.github.io/" class="hover:text-yellow-500">Portfolio</a>
+                    <a href="https://github.com/pixelabswedia-cloud" class="hover:text-yellow-500">GitHub</a>
+                    <a href="https://wa.me/628XXXXXXXXXX" class="text-yellow-500 border border-yellow-500 px-3 py-1 rounded-md">Pesan Bot WA</a>
+                </div>
             </div>
         </nav>
 
-        <section class="max-w-4xl mx-auto p-6 mt-10">
-            <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-xl">
-                <h2 class="text-3xl font-bold mb-4">Crypto Bot & Monitoring System</h2>
-                <p class="text-gray-400 mb-6">Halo, saya <strong>Saka</strong>. Saya mengembangkan sistem bot WhatsApp untuk tracking saldo OKX dan monitoring aset kripto secara real-time. Di bawah ini adalah analisis pasar yang diperbarui otomatis oleh sistem AI saya.</p>
-                <div class="flex gap-4">
-                    <a href="https://wa.me/628XXXXXXXX" class="bg-green-600 px-4 py-2 rounded-lg font-bold">Hubungi Bot</a>
-                    <a href="#ai-insight" class="bg-yellow-600 px-4 py-2 rounded-lg font-bold">Cek Market Insight</a>
-                </div>
+        <main class="max-w-7xl mx-auto p-4 md:p-8">
+            <section class="mb-12">
+                <h1 class="text-3xl font-bold mb-2">Harga Aset Kripto Hari Ini</h1>
+                <p class="text-gray-400">Data real-time diambil langsung dari pasar global.</p>
+            </section>
+
+            <div class="overflow-x-auto bg-[#171924] rounded-xl border border-gray-800">
+                <table class="w-full text-left">
+                    <thead class="border-b border-gray-800 text-gray-400 text-sm">
+                        <tr>
+                            <th class="p-4">#</th>
+                            <th class="p-4">Nama</th>
+                            <th class="p-4">Harga</th>
+                            <th class="p-4">24h %</th>
+                            <th class="p-4 hidden md:table-cell">Market Cap</th>
+                        </tr>
+                    </thead>
+                    <tbody id="crypto-table-body">
+                        <tr class="shimmer h-12"> <td colspan="5"></td> </tr>
+                    </tbody>
+                </table>
             </div>
-        </section>
     """
 
-    # Bagian Footer Statis
+    # Bagian Footer & Script JavaScript Real-time
     footer_html = f"""
-        <footer class="mt-20 p-10 border-t border-gray-800 text-center text-gray-500">
-            <p>&copy; {datetime.datetime.now().year} Developed by Saka. System Updated: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}</p>
+            <section id="ai-insight" class="mt-12 bg-[#171924] p-6 rounded-xl border border-gray-800">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-robot text-yellow-500"></i>
+                    <h2 class="text-xl font-bold">Analisis AI (Saka Engine)</h2>
+                </div>
+                <div class="text-gray-300 leading-relaxed">
+                    {{{{AI_CONTENT}}}}
+                </div>
+            </section>
+        </main>
+
+        <footer class="mt-20 p-10 border-t border-gray-800 text-center text-gray-500 text-sm">
+            <p>&copy; {datetime.datetime.now().year} Saka Digital Monitoring. Data updated via CoinGecko API.</p>
         </footer>
+
+        <script>
+            async function fetchCryptoData() {{
+                try {{
+                    const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=idr&order=market_cap_desc&per_page=10&page=1&sparkline=false');
+                    const data = await response.json();
+                    const tableBody = document.getElementById('crypto-table-body');
+                    tableBody.innerHTML = '';
+
+                    data.forEach((coin, index) => {{
+                        const changeColor = coin.price_change_percentage_24h > 0 ? 'text-green-500' : 'text-red-500';
+                        const changeIcon = coin.price_change_percentage_24h > 0 ? '▲' : '▼';
+                        
+                        tableBody.innerHTML += `
+                            <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition">
+                                <td class="p-4 text-gray-500 font-medium">${{index + 1}}</td>
+                                <td class="p-4 flex items-center gap-3">
+                                    <img src="${{coin.image}}" class="w-6 h-6 rounded-full">
+                                    <span class="font-bold">${{coin.name}}</span>
+                                    <span class="text-gray-500 text-xs uppercase">${{coin.symbol}}</span>
+                                </td>
+                                <td class="p-4 font-semibold">Rp ${{coin.current_price.toLocaleString('id-ID')}}</td>
+                                <td class="p-4 ${{changeColor}} font-medium">${{changeIcon}} ${{Math.abs(coin.price_change_percentage_24h).toFixed(2)}}%</td>
+                                <td class="p-4 hidden md:table-cell text-gray-400 text-sm">Rp ${{coin.market_cap.toLocaleString('id-ID')}}</td>
+                            </tr>
+                        `;
+                    }});
+                }} catch (error) {{
+                    console.error('Error fetching data:', error);
+                }}
+            }}
+            fetchCryptoData();
+            setInterval(fetchCryptoData, 60000); // Refresh data setiap 60 detik
+        </script>
     </body>
     </html>
     """
 
-    # Prompt untuk bagian DINAMIS saja
-    prompt = """
-    Buatlah ringkasan singkat analisis pasar Crypto hari ini (fokus ke BTC, ETH, dan SOL). 
-    Berikan tips trading singkat. 
-    Format dalam HTML menggunakan Tailwind CSS:
-    - Gunakan grid 3 kolom untuk harga.
-    - Gunakan kartu (cards) dengan background bg-gray-800 dan border-gray-700.
-    - Berikan indikator warna (hijau/merah) untuk tren.
-    Hanya berikan kode HTML isi saja (tanpa tag html/body).
-    """
+    # Prompt untuk Groq AI (Memberikan Insight Strategis)
+    prompt = "Berikan analisis singkat pasar crypto hari ini dalam Bahasa Indonesia. Fokus pada pergerakan Bitcoin dan sentimen pasar. Gunakan format paragraf HTML yang rapi dengan Tailwind."
 
     try:
         completion = client.chat.completions.create(
             messages=[
-                {"role": "system", "content": "You are a professional Crypto Analyst. Output only HTML div sections."},
+                {"role": "system", "content": "You are a professional Crypto Analyst. Output only clean HTML tags like <p> and <ul>."},
                 {"role": "user", "content": prompt}
             ],
             model="llama-3.1-8b-instant",
         )
+        ai_insight = completion.choices[0].message.content.strip()
         
-        ai_content = completion.choices[0].message.content.strip()
-        
-        # Bersihkan dari tanda markdown jika ada
-        if "```" in ai_content:
-            ai_content = ai_content.split("```")[1].replace("html", "").strip()
-
-        # Gabungkan semua bagian
-        final_page = header_html + f"<section id='ai-insight' class='max-w-4xl mx-auto p-6'>" + ai_content + "</section>" + footer_html
+        # Gabungkan semua
+        final_page = header_html + footer_html.replace("{{AI_CONTENT}}", ai_insight)
 
         with open("index.html", "w", encoding="utf-8") as f:
             f.write(final_page)
-            
-        print("Success: Landing page updated with Fixed Bio and AI Crypto Insight!")
+        print("Success: Web Real-time ala CoinMarketCap berhasil dibuat!")
 
     except Exception as e:
         print(f"Error: {e}")
 
 if __name__ == "__main__":
-    generate_blog()
+    generate_web()
